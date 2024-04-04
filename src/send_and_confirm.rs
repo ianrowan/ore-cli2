@@ -18,9 +18,9 @@ use solana_transaction_status::{TransactionConfirmationStatus, UiTransactionEnco
 
 use crate::Miner;
 
-const RPC_RETRIES: usize = 1;
-const GATEWAY_RETRIES: usize = 4;
-const CONFIRM_RETRIES: usize = 4;
+const RPC_RETRIES: usize = 5;
+const GATEWAY_RETRIES: usize = 10;
+const CONFIRM_RETRIES: usize = 10;
 
 impl Miner {
     pub async fn send_and_confirm(
@@ -31,11 +31,11 @@ impl Miner {
         let mut stdout = stdout();
         let signer = self.signer();
         let client =
-            RpcClient::new_with_commitment(self.cluster.clone(), CommitmentConfig::confirmed());
+            RpcClient::new_with_commitment(self.cluster.clone(), CommitmentConfig::processed());
 
         // Return error if balance is zero
         let balance = client
-            .get_balance_with_commitment(&signer.pubkey(), CommitmentConfig::confirmed())
+            .get_balance_with_commitment(&signer.pubkey(), CommitmentConfig::processed())
             .await
             .unwrap();
         if balance.value <= 0 {
@@ -47,7 +47,7 @@ impl Miner {
 
         // Build tx
         let (mut hash, mut slot) = client
-            .get_latest_blockhash_with_commitment(CommitmentConfig::confirmed())
+            .get_latest_blockhash_with_commitment(CommitmentConfig::processed())
             .await
             .unwrap();
         let mut send_cfg = RpcSendTransactionConfig {
@@ -87,7 +87,7 @@ impl Miner {
                                                 .as_ref()
                                                 .unwrap();
                                             match current_commitment {
-                                                TransactionConfirmationStatus::Processed => {}
+                                                TransactionConfirmationStatus::Processed |
                                                 TransactionConfirmationStatus::Confirmed
                                                 | TransactionConfirmationStatus::Finalized => {
                                                     println!("Transaction landed!");
@@ -120,12 +120,12 @@ impl Miner {
             // Retry
             std::thread::sleep(Duration::from_millis(200));
             (hash, slot) = client
-                .get_latest_blockhash_with_commitment(CommitmentConfig::confirmed())
+                .get_latest_blockhash_with_commitment(CommitmentConfig::processed())
                 .await
                 .unwrap();
             send_cfg = RpcSendTransactionConfig {
                 skip_preflight: true,
-                preflight_commitment: Some(CommitmentLevel::Confirmed),
+                preflight_commitment: Some(CommitmentLevel::Processed),
                 encoding: Some(UiTransactionEncoding::Base64),
                 max_retries: Some(RPC_RETRIES),
                 min_context_slot: Some(slot),
