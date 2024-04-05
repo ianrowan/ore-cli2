@@ -18,9 +18,9 @@ use solana_transaction_status::{TransactionConfirmationStatus, UiTransactionEnco
 
 use crate::Miner;
 
-const RPC_RETRIES: usize = 5;
-const GATEWAY_RETRIES: usize = 10;
-const CONFIRM_RETRIES: usize = 10;
+const RPC_RETRIES: usize = 50;
+const GATEWAY_RETRIES: usize = 7;
+const CONFIRM_RETRIES: usize = 7;
 
 impl Miner {
     pub async fn send_and_confirm(
