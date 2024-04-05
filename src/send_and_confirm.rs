@@ -18,7 +18,7 @@ use solana_transaction_status::{TransactionConfirmationStatus, UiTransactionEnco
 
 use crate::Miner;
 
-const RPC_RETRIES: usize = 50;
+const RPC_RETRIES: usize = 75;
 const GATEWAY_RETRIES: usize = 7;
 const CONFIRM_RETRIES: usize = 7;
 
